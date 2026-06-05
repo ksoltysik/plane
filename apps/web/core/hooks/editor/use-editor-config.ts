@@ -12,7 +12,7 @@ import { getEditorAssetDownloadSrc, getEditorAssetSrc } from "@plane/utils";
 import { useEditorAsset } from "@/hooks/store/use-editor-asset";
 // plane web hooks
 import { useExtendedEditorConfig } from "@/plane-web/hooks/editor/use-extended-editor-config";
-import { useFileSize } from "@/plane-web/hooks/use-file-size";
+import { useFileSize } from "@/hooks/use-file-size";
 // services
 import { FileService } from "@/services/file.service";
 const fileService = new FileService();
