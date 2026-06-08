@@ -14,7 +14,8 @@ cd "$COMPOSE_DIR"
 mkdir -p "$BACKUP_DIR"
 
 # Postgres: pg_dump inside the db container, gzip on the host.
-docker compose exec -T plane-db sh -c 'pg_dump -U "$POSTGRES_USER" "$POSTGRES_DB"' \
+# PGHOST=plane-db in the container forces TCP auth, so PGPASSWORD is required.
+docker compose exec -T plane-db sh -c 'PGPASSWORD="$POSTGRES_PASSWORD" pg_dump -U "$POSTGRES_USER" "$POSTGRES_DB"' \
     | gzip > "$BACKUP_DIR/db-$STAMP.sql.gz"
 
 # MinIO uploads: tar the volume contents from inside the container.
