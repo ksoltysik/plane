@@ -21,6 +21,8 @@ from .views import (
     MagicGenerateEndpoint,
     MagicSignInEndpoint,
     MagicSignUpEndpoint,
+    OidcInitiateEndpoint,
+    OidcCallbackEndpoint,
     SignInAuthEndpoint,
     SignOutAuthEndpoint,
     SignUpAuthEndpoint,
@@ -150,4 +152,7 @@ urlpatterns = [
         GiteaCallbackSpaceEndpoint.as_view(),
         name="space-gitea-callback",
     ),
+    ## OIDC
+    path("oidc/", OidcInitiateEndpoint.as_view(), name="oidc-initiate"),
+    path("oidc/callback/", OidcCallbackEndpoint.as_view(), name="oidc-callback"),
 ]
