@@ -1,0 +1,3 @@
+# Runtime env holds secrets — never commit. Use plane.env.example as the template.
+plane.env
+dist/
