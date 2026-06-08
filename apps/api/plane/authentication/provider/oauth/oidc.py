@@ -96,23 +96,28 @@ class OidcProvider(OauthAdapter):
 
         redirect_uri = f"""{"https" if request.is_secure() else "http"}://{request.get_host()}/auth/oidc/callback/"""
 
-        # Persist the nonce in the cache keyed by `state`, plus a session fallback
-        # (see module docstring for why cookie-only is unreliable).
-        nonce = uuid.uuid4().hex
-        if state:
-            cache.set(f"oidc_nonce_{state}", nonce, timeout=600)  # 10 min, matches login window
-        request.session["oidc_nonce"] = nonce
-        request.session.modified = True
-
-        url_params = {
-            "client_id": client_id,
-            "scope": scope,
-            "redirect_uri": redirect_uri,
-            "response_type": "code",
-            "state": state,
-            "nonce": nonce,
-        }
-        auth_url = f"{auth_url_base}?{urlencode(url_params)}"
+        # Mint the nonce only on initiate (no code yet). __init__ also runs on the
+        # callback, where regenerating would clobber the cached value and make the
+        # ID-token nonce check fail — there we only read it back (below).
+        if code is None:
+            # Persist in the cache keyed by `state`, plus a session fallback
+            # (see module docstring for why cookie-only is unreliable).
+            nonce = uuid.uuid4().hex
+            if state:
+                cache.set(f"oidc_nonce_{state}", nonce, timeout=600)  # 10 min, matches login window
+            request.session["oidc_nonce"] = nonce
+            request.session.modified = True
+            url_params = {
+                "client_id": client_id,
+                "scope": scope,
+                "redirect_uri": redirect_uri,
+                "response_type": "code",
+                "state": state,
+                "nonce": nonce,
+            }
+            auth_url = f"{auth_url_base}?{urlencode(url_params)}"
+        else:
+            auth_url = auth_url_base  # unused on callback
 
         super().__init__(
             request,
