@@ -18,9 +18,10 @@ mkdir -p "$BACKUP_DIR"
 docker compose exec -T plane-db sh -c 'PGPASSWORD="$POSTGRES_PASSWORD" pg_dump -U "$POSTGRES_USER" "$POSTGRES_DB"' \
     | gzip > "$BACKUP_DIR/db-$STAMP.sql.gz"
 
-# MinIO uploads: tar the volume contents from inside the container.
-docker compose exec -T plane-minio sh -c 'cd /export && tar czf - .' \
-    > "$BACKUP_DIR/uploads-$STAMP.tar.gz"
+# MinIO uploads: tar the Docker volume via a helper (the minio image has no tar).
+UPLOADS_VOLUME=${UPLOADS_VOLUME:-plane_uploads}
+docker run --rm -v "$UPLOADS_VOLUME":/data:ro -v "$BACKUP_DIR":/backup alpine \
+    tar czf "/backup/uploads-$STAMP.tar.gz" -C /data .
 
 # Retention — delete all but the newest $RETAIN of each kind.
 ls -1t "$BACKUP_DIR"/db-*.sql.gz      2>/dev/null | tail -n +$((RETAIN + 1)) | xargs -r rm -f
